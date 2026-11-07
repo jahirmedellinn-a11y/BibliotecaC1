@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGB Escolar Jalpan • Prototipo Funcional de Biblioteca</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- HEADER INSTITUCIONAL Y SIMULADOR DE TIEMPO -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <span class="brand-badge">UTSJR • Jalpan</span>
+        <div>
+          <h1 class="brand-title">SIGB Escolar Jalpan</h1>
+          <p class="brand-subtitle">Prototipo Funcional de Modernización y Control de Circulación • Evaluación Parcial</p>
+        </div>
+      </div>
+
+      <!-- Simulador de Tiempo para pruebas de vencimiento -->
+      <div class="time-simulator">
+        <div class="time-display">
+          <span class="time-label">Reloj del Sistema (Simulado)</span>
+          <span id="clock-display" class="time-value">Cargando fecha...</span>
+        </div>
+        <div class="time-actions">
+          <button class="btn-time" onclick="advanceTime(6)" title="Avanzar 6 Horas">+6h</button>
+          <button class="btn-time" onclick="advanceTime(24)" title="Avanzar 1 Día">+1 Día</button>
+          <button class="btn-time" onclick="advanceTime(72)" title="Avanzar 3 Días">+3 Días</button>
+          <button class="btn-time" onclick="advanceTime(168)" title="Avanzar 7 Días">+7 Días</button>
+          <button class="btn-time" onclick="resetData()" title="Resetear datos iniciales" style="background:#EF4444; border-color:#DC2626;">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BARRA DE PESTAÑAS DE NAVEGACIÓN -->
+  <nav class="nav-tabs">
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="tab-mostrador">
+        <span>⚡ Mostrador de Circulación</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-prestamos">
+        <span>📊 Monitor y Semáforo de Préstamos</span>
+        <span id="tab-count-loans" class="tab-counter">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-catalogo">
+        <span>📚 Catálogo e Inventario de Ejemplares</span>
+        <span id="tab-count-books" class="tab-counter">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-alumnos">
+        <span>🎓 Padrón de Alumnos y Bloqueos</span>
+        <span id="tab-count-students" class="tab-counter">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-documentacion">
+        <span>📖 Documentación y Evaluación Parcial</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+
+    <!-- TARJETAS DE MÉTRICAS EN VIVO -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon blue">📖</div>
+        <div class="metric-info">
+          <h4>Total de Ejemplares</h4>
+          <div id="metric-total-copies" class="metric-num">0</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon green">✓</div>
+        <div class="metric-info">
+          <h4>Disponibles en Estante</h4>
+          <div id="metric-avail-copies" class="metric-num">0</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon purple">🔄</div>
+        <div class="metric-info">
+          <h4>Préstamos Activos</h4>
+          <div id="metric-active-loans" class="metric-num">0</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon red">⚠️</div>
+        <div class="metric-info">
+          <h4>Préstamos en Mora / Vencidos</h4>
+          <div id="metric-overdue-loans" class="metric-num">0</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon yellow">⚡</div>
+        <div class="metric-info">
+          <h4>Solicitudes Procesadas</h4>
+          <div id="metric-requests" class="metric-num">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 1: MOSTRADOR DE CIRCULACIÓN RÁPIDA -->
+    <section id="tab-mostrador" class="tab-view active">
+      <div class="grid-2col">
+
+        <!-- Panel Izquierdo: Captura y Validación de Alumno -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">1. Autenticación y Verificación del Alumno</h3>
+            <span class="badge badge-primary">Paso 1</span>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Escanear Credencial Escolar (Código de Barras / QR / Matrícula):</label>
+            <div class="input-scanner-wrap">
+              <input type="text" id="input-student-scan" class="input-text" placeholder="Ej. 20260101 o presiona un botón rápido...">
+              <button class="btn-scan" onclick="scanStudent()">🔍 Escanear</button>
+            </div>
+            <div class="quick-pills">
+              <span style="font-size:11px; color:#64748B; align-self:center;">Pruebas rápidas:</span>
+              <button class="pill-btn" onclick="document.getElementById('input-student-scan').value='20260101'; scanStudent();">Darian Sánchez (Apto)</button>
+              <button class="pill-btn" onclick="document.getElementById('input-student-scan').value='20260106'; scanStudent();">Ana Flores (3/3 Límite)</button>
+              <button class="pill-btn" onclick="document.getElementById('input-student-scan').value='20260105'; scanStudent();">Juan Pablo (Moroso/Multa)</button>
+            </div>
+          </div>
+
+          <!-- Caja de Información Dinámica del Alumno -->
+          <div id="student-info-box">
+            <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; padding:20px; text-align:center; color:#64748B;">
+              Pase la credencial del estudiante por el lector óptico para verificar estatus, morosidad y libros en posesión.
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Captura y Verificación del Ejemplar -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">2. Identificación del Ejemplar Físico</h3>
+            <span class="badge badge-primary">Paso 2</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Escanear Código de Barras Único del Libro (Marbete en Lomo):</label>
+            <div class="input-scanner-wrap">
+              <input type="text" id="input-book-scan" class="input-text" placeholder="Ej. UTSJR-LIB-002...">
+              <button class="btn-scan" onclick="scanBook()">🔍 Escanear</button>
+            </div>
+            <div class="quick-pills">
+              <span style="font-size:11px; color:#64748B; align-self:center;">Pruebas rápidas:</span>
+              <button class="pill-btn" onclick="document.getElementById('input-book-scan').value='UTSJR-LIB-002'; scanBook();">Kendall & Kendall (Disponible)</button>
+              <button class="pill-btn" onclick="document.getElementById('input-book-scan').value='UTSJR-LIB-001'; scanBook();">Kendall (Ya Prestado)</button>
+              <button class="pill-btn" onclick="document.getElementById('input-book-scan').value='UTSJR-LIB-009'; scanBook();">Elmasri (En Reparación)</button>
+            </div>
+          </div>
+
+          <!-- Caja de Información Dinámica del Libro -->
+          <div id="book-info-box">
+            <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; padding:20px; text-align:center; color:#64748B;">
+              Escanee el código de barras adherido al ejemplar físico para consultar su edición, ubicación y condición.
+            </div>
+          </div>
+
+          <!-- Confirmación de Transacción de Préstamo -->
+          <div style="margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size:12px; font-weight:600;">Plazo de Préstamo:</label>
+              <select id="select-loan-days" class="filter-select" style="padding:6px 10px; font-size:12px;">
+                <option value="3" selected>3 Días Hábiles (Estándar)</option>
+                <option value="5">5 Días Hábiles (Investigación)</option>
+                <option value="1">1 Día (Urgente / Reserva)</option>
+              </select>
+            </div>
+            <button id="btn-confirm-loan" class="btn-primary" onclick="executeLoan()" disabled>
+              ✓ Confirmar Préstamo Inmediato
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sección Inferior: Devolución Rápida en Mostrador -->
+      <div class="panel-card" style="margin-top:8px;">
+        <div class="panel-header">
+          <h3 class="panel-title">🔄 Devolución Rápida y Recepción de Ejemplares</h3>
+          <span style="font-size:12px; color:#64748B;">Inspección física y retorno automático a inventario disponible</span>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="input-return-scan" class="input-text" style="max-width:320px;" placeholder="Escanear código del libro a devolver...">
+          <button class="btn-primary" onclick="prepareReturn(document.getElementById('input-return-scan').value.trim())">
+            🔍 Inspeccionar y Devolver
+          </button>
+          <span style="font-size:12px; color:#64748B;">O haz clic en el botón "Devolver" directamente desde el Monitor de Préstamos.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 2: MONITOR DE PRÉSTAMOS Y SEMÁFORO DE TIEMPO -->
+    <section id="tab-prestamos" class="tab-view">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Control y Medición Exacta del Tiempo de Préstamo</h3>
+            <p style="font-size:12.5px; color:#64748B; margin-top:2px;">
+              Semáforo cromático automatizado: Verde (Plazo regular), Amarillo (Vence en menos de 24 horas) y Rojo (Vencido / En Mora con multa de $10.00/día).
+            </p>
+          </div>
+          <button class="btn-secondary" onclick="advanceTime(24)">Simular Paso de 24 Horas</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Alumno / Matrícula</th>
+                <th>Libro / Código</th>
+                <th>Fecha Salida</th>
+                <th>Fecha Límite</th>
+                <th>Estado y Semáforo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="loans-table-body">
+              <!-- Renderizado dinámico desde JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: CATÁLOGO E INVENTARIO DE EJEMPLARES -->
+    <section id="tab-catalogo" class="tab-view">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Catálogo Bibliográfico y Control de Copias Físicas</h3>
+            <p style="font-size:12.5px; color:#64748B; margin-top:2px;">
+              Búsqueda en tiempo real indexada capaz de atender más de 100 solicitudes simultáneas con visualización de ediciones y condiciones.
+            </p>
+          </div>
+        </div>
+
+        <!-- Barra de Búsqueda y Filtros -->
+        <div class="search-filter-bar">
+          <div class="search-input-wrap">
+            <input type="text" id="search-catalog-input" class="input-text" placeholder="🔍 Buscar por título, autor, editorial, código de barras o ISBN...">
+          </div>
+          <select id="filter-catalog-status" class="filter-select">
+            <option value="ALL">Todos los Estados</option>
+            <option value="AVAILABLE">Solo Disponibles en Estante</option>
+            <option value="LOANED">Solo Prestados Actualmente</option>
+            <option value="MAINTENANCE">En Reparación / Mantenimiento</option>
+          </select>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Código Único</th>
+                <th>Título, Autor y Edición</th>
+                <th>Categoría</th>
+                <th>Ubicación en Estante</th>
+                <th>Condición Física</th>
+                <th>Disponibilidad</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="catalog-table-body">
+              <!-- Renderizado dinámico desde JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 4: PADRÓN DE ALUMNOS Y BLOQUEOS -->
+    <section id="tab-alumnos" class="tab-view">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Padrón Escolar de Estudiantes y Estado de Morosidad</h3>
+            <p style="font-size:12.5px; color:#64748B; margin-top:2px;">
+              Trazabilidad institucional: Alumnos con libros vencidos o multas quedan bloqueados de forma inmediata.
+            </p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Matrícula</th>
+                <th>Nombre Completo</th>
+                <th>Carrera Universitaria</th>
+                <th>Libros en Posesión</th>
+                <th>Multa Acumulada</th>
+                <th>Estatus Institucional</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body">
+              <!-- Renderizado dinámico desde JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 5: DOCUMENTACIÓN Y EVALUACIÓN PARCIAL -->
+    <section id="tab-documentacion" class="tab-view">
+      
+      <div class="doc-box">
+        <h3>Evaluación Parcial: Análisis y Justificación Metodológica</h3>
+        <p><strong>Asignatura:</strong> Análisis y Diseño de Software • <strong>Docente:</strong> Ing. Omar Medrano Soria</p>
+        <p><strong>Alumno:</strong> Sánchez Ramírez Darian • <strong>Carrera:</strong> TSU en Desarrollo de Software Multiplataforma</p>
+        <p><strong>Repositorio GitHub Oficial:</strong> <a href="https://github.com/dzly7/sigb-biblioteca-escolar-prototipo" target="_blank" style="color:#102C57; font-weight:700;">https://github.com/dzly7/sigb-biblioteca-escolar-prototipo</a></p>
+      </div>
+
+      <div class="doc-box">
+        <h3>1. ¿Qué es necesario para estructurar un prototipo?</h3>
+        <p>
+          Conforme a los fundamentos de la Ingeniería de Software (Kendall & Kendall, 2005; Pressman, 2020), la estructuración formal de un prototipo 
+          requiere cinco fases sistemáticas previas y artefactos bien definidos:
+        </p>
+        <ul>
+          <li><strong>Levantamiento y Análisis de Requerimientos Previos:</strong> No se puede estructurar un prototipo en el vacío. Debe contarse con la especificación formal de Requisitos Funcionales (RF) y No Funcionales (RNF) derivados de la Fase de Planeación. En este caso, el análisis de los 3 problemas mayores (límite de 15 libros, préstamo 'de palabra' y falta de base de datos para +100 solicitudes).</li>
+          <li><strong>Definición de la Taxonomía y Alcance del Prototipo:</strong> Determinar el tipo de prototipo a construir según la clasificación de Kendall & Kendall: <em>Prototipo de Características Selectas (Selected-features prototype)</em> o <em>Prototipo Primero de una Serie</em>, acotando qué subsistemas serán plenamente operativos (circulación, semáforo, catálogo) y cuáles serán simulados.</li>
+          <li><strong>Modelado de Arquitectura y Flujos de Usuario (User Flows):</strong> Diagramar la interacción de los gestores y alumnos mediante diagramas de flujo y esquemas lógicos antes de codificar la interfaz.</li>
+          <li><strong>Selección del Stack Tecnológico y Entorno de Ejecución:</strong> Escoger tecnologías ágiles que permitan rápida retroalimentación y compatibilidad multiplataforma (HTML5, CSS3 semántico, JavaScript ES6+ reactivo, sin dependencias pesadas).</li>
+          <li><strong>Dataset Representativo de Prueba:</strong> Cargar datos realistas de títulos bibliográficos, códigos de barras, matrículas escolares y estados de tiempo para someter a prueba las reglas de negocio en condiciones reales de operación.</li>
+        </ul>
+      </div>
+
+      <div class="doc-box">
+        <h3>2. ¿En esta escala el prototipo debería de ser funcional? ¿Por qué?</h3>
+        <p>
+          <strong>SÍ, en esta escala de evaluación el prototipo DEBE ser funcional (Prototipo Operativo de Características Selectas).</strong> 
+          Las razones técnicas y metodológicas son contundentes:
+        </p>
+        <ul>
+          <li><strong>Demostración de la Erradicación de la 'Palabra':</strong> Un prototipo estático (wireframe o mockup en imagen) no puede demostrar que el sistema bloquea efectivamente a un alumno con mora ni que impide prestar más de 3 libros. Solo la interactividad funcional permite comprobar que las reglas de negocio sustituyen a la promesa verbal.</li>
+          <li><strong>Comprobación del Manejo de +100 Solicitudes:</strong> El personal bibliotecario necesita experimentar la velocidad real del buscador y la captura instantánea de códigos de barras para verificar que el cuello de botella queda resuelto.</li>
+          <li><strong>Medición Exacta del Tiempo y Semáforo Dinámico:</strong> La necesidad crítica de "medir con exactitud el tiempo para evitar robos u olvidos" exige un motor de reloj que calcule fechas límites, horas transcurridas, alertas preventivas a 24 horas y multas acumulativas en vivo. En un diseño estático, esta funcionalidad vital no puede validarse empíricamente.</li>
+          <li><strong>Retroalimentación de Alta Fidelidad:</strong> Permite a los interesados (docente, equipo de desarrollo y personal bibliotecario) interactuar directamente con la solución, detectando mejoras de usabilidad inmediatamente.</li>
+        </ul>
+      </div>
+
+      <div class="doc-box">
+        <h3>3. ¿Cómo asegurar entrega continua de prototipos y ajustar la necesidad de cambios a la entrega de artefactos?</h3>
+        <p>
+          Para mantener una cadencia continua de entrega y adaptar los artefactos conforme evolucionen los requisitos, se implementa la siguiente estrategia de ingeniería ágil y DevOps:
+        </p>
+        <ul>
+          <li><strong>Pipeline de Integración y Despliegue Continuo (CI/CD con GitHub):</strong> Se utiliza un repositorio centralizado en GitHub bajo el modelo de ramas protegidas (<em>GitFlow / GitHub Flow</em>). Cada nueva característica (ej. módulo de RFID o pasarela de pagos) se desarrolla en una rama <code>feature/</code>, se valida con pruebas y se fusiona a <code>main</code> mediante Pull Requests.</li>
+          <li><strong>Despliegue Automatizado en GitHub Pages:</strong> Cada <code>push</code> a la rama principal dispara el despliegue automático del prototipo web, garantizando que el docente y el equipo siempre tengan acceso a la última versión ejecutable sin necesidad de instalaciones locales.</li>
+          <li><strong>Trazabilidad Bidireccional de Artefactos (Código vs. Documentación):</strong> Siguiendo el versionado semántico (v1.0.0, v1.1.0), cualquier cambio solicitado por el cliente en el prototipo se registra en un <em>Issue</em> de GitHub y se actualiza simultáneamente en la Matriz de Trazabilidad de Requisitos (IEEE 830) y en los diagramas UML, previniendo la desincronización entre el código y la documentación.</li>
+          <li><strong>Sprints Cortos e Inspección Continua:</strong> Entregas incrementales en ciclos de 1 a 2 semanas con demostración del prototipo en vivo, permitiendo ajustar requisitos en caliente sin incurrir en costos de refactorización tardía.</li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL: RECIBO / COMPROBANTE DE PRÉSTAMO DIGITAL -->
+  <div id="receipt-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📄 Comprobante Oficial de Préstamo</h3>
+        <button class="modal-close" onclick="closeModal('receipt-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="receipt-modal-content">
+        <!-- Renderizado dinámico -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="window.print()">Imprimir Ticket</button>
+        <button class="btn-primary" onclick="closeModal('receipt-modal')">Aceptar y Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEVOLUCIÓN E INSPECCIÓN FÍSICA -->
+  <div id="return-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🔄 Inspección Física y Devolución</h3>
+        <button class="modal-close" onclick="closeModal('return-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="return-modal-content">
+        <!-- Renderizado dinámico -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('return-modal')">Cancelar</button>
+        <button class="btn-primary" onclick="confirmReturn()">✓ Confirmar Recepción y Liberar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE TOASTS NOTIFICACIONES -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="database.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
