@@ -53,6 +53,9 @@
         <span>📚 Catálogo e Inventario de Ejemplares</span>
         <span id="tab-count-books" class="tab-counter">0</span>
       </button>
+      <button class="tab-btn" data-tab="tab-consulta-usuarios">
+        <span>🔍 Consulta Dinámica de Usuarios</span>
+      </button>
       <button class="tab-btn" data-tab="tab-alumnos">
         <span>🎓 Padrón de Alumnos y Bloqueos</span>
         <span id="tab-count-students" class="tab-counter">0</span>
@@ -251,11 +254,15 @@
           <div class="search-input-wrap">
             <input type="text" id="search-catalog-input" class="input-text" placeholder="🔍 Buscar por título, autor, editorial, código de barras o ISBN...">
           </div>
+          <select id="filter-catalog-category" class="filter-select">
+            <option value="ALL">Todas las Categorías</option>
+          </select>
           <select id="filter-catalog-status" class="filter-select">
             <option value="ALL">Todos los Estados</option>
             <option value="AVAILABLE">Solo Disponibles en Estante</option>
             <option value="LOANED">Solo Prestados Actualmente</option>
             <option value="MAINTENANCE">En Reparación / Mantenimiento</option>
+            <option value="LOST">Extraviados / No Localizados</option>
           </select>
         </div>
 
@@ -277,6 +284,73 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA: PORTAL DE CONSULTA DINÁMICA DE USUARIOS (CASO 2 Y CASO 3) -->
+    <section id="tab-consulta-usuarios" class="tab-view">
+      <div style="display:flex; flex-direction:column; gap:24px;">
+
+        <!-- MÓDULO 1: CONSULTA DE ELEMENTOS RENTADOS / PENDIENTES POR USUARIO (CASO 2) -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">👤 Consulta de Libros Rentados por Alumno (Elementos Pendientes de Entrega)</h3>
+              <p style="font-size:12.5px; color:#64748B; margin-top:2px;">
+                <strong>Caso 2:</strong> Permite a los usuarios y alumnos consultar en tiempo real qué libros tienen en préstamo, sus fechas de entrega y adeudos pendientes.
+              </p>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="input-lookup-matricula" class="input-text" style="max-width:320px;" placeholder="Ingresa matrícula (ej. 20260102) o nombre...">
+            <button class="btn-primary" onclick="lookupUserLoans()">🔍 Consultar Mis Préstamos</button>
+            <span style="font-size:12px; color:#64748B;">Pruebas rápidas:</span>
+            <button class="pill-btn" onclick="demoLookupStudent('20260102')">Alumno con libros</button>
+            <button class="pill-btn" onclick="demoLookupStudent('20260105')">Alumno en mora ($50)</button>
+            <button class="pill-btn" onclick="demoLookupStudent('20260104')">Alumno con 6ª Edición</button>
+          </div>
+
+          <div id="user-loans-result">
+            <div class="info-card" style="background:#F8FAFC; border-color:#E2E8F0;">
+              <p style="color:#64748B;">Escribe tu matrícula escolar o nombre arriba para consultar tus libros rentados y fechas de entrega.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULO 2: BÚSQUEDA DINÁMICA DE LIBROS EN INVENTARIO Y DISTINCIÓN DE EDICIONES (CASO 2 Y CASO 3) -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">📚 Buscador Dinámico de Inventario y Distinción de Ediciones</h3>
+              <p style="font-size:12.5px; color:#64748B; margin-top:2px;">
+                <strong>Caso 2 y Caso 3:</strong> Consulta en tiempo real qué títulos y copias físicas hay en inventario. Distingue entre ediciones críticas (ej. <em>Cálculo multivariable</em> 4ª y 5ª con errata en Cap. 3 vs 6ª y 7ª corregidas recomendadas para exámenes).
+              </p>
+            </div>
+            <span id="user-inventory-count" style="font-size:12.5px; font-weight:700; color:#1E3A8A;"></span>
+          </div>
+
+          <div class="search-filter-bar" style="margin-bottom:16px;">
+            <div class="search-input-wrap">
+              <input type="text" id="user-search-inventory" class="input-text" placeholder="🔍 Buscar libro por título, autor o edición (ej. escribe 'Calculo')...">
+            </div>
+            <select id="user-filter-category" class="filter-select">
+              <option value="ALL">Todas las Categorías</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer; user-select:none;">
+              <input type="checkbox" id="user-filter-avail-only"> Solo disponibles en estante
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:#B91C1C; cursor:pointer; user-select:none;">
+              <input type="checkbox" id="user-filter-exam-only"> 🔥 Alta Demanda en Evaluaciones (Caso 3)
+            </label>
+          </div>
+
+          <!-- Cuadrícula dinámica de libros -->
+          <div id="user-inventory-grid" class="user-inventory-grid">
+            <!-- Renderizado dinámico desde JavaScript -->
+          </div>
+        </div>
+
       </div>
     </section>
 

@@ -8,7 +8,8 @@ const MEXICAN_CATEGORIES = [
   "Crónica y Testimonio",
   "Historia y Antropología",
   "Literatura Contemporánea",
-  "Ciencia y Divulgación Mexicana"
+  "Ciencia y Divulgación Mexicana",
+  "Ciencias Exactas y Matemáticas"
 ];
 
 const MEXICAN_BOOKS_DATABASE = [
@@ -669,6 +670,74 @@ const MEXICAN_BOOKS_DATABASE = [
     category: "Ciencia y Divulgación Mexicana",
     copies: [
       { barcode: "UTSJR-LIB-059", location: "Pasillo 5, Estante A-1", condition: "Excelente", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "Divulgación científica nacional" }
+    ]
+  },
+  {
+    id: "BK51",
+    isbn: "978-607-481-898-7",
+    title: "Cálculo multivariable",
+    author: "James Stewart",
+    edition: "4ª Edición",
+    editorial: "Cengage Learning México",
+    year: 2002,
+    category: "Ciencias Exactas y Matemáticas",
+    editionNote: "⚠️ Advertencia: Errata en ejercicios del Capítulo 3. Consultar versiones recientes.",
+    hasChapter3Error: true,
+    highDemand: true,
+    copies: [
+      { barcode: "UTSJR-LIB-060", location: "Pasillo 5, Estante B-1", condition: "Bueno", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "4ª Edición con errata en Cap. 3" },
+      { barcode: "UTSJR-LIB-061", location: "Pasillo 5, Estante B-1", condition: "Regular", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "4ª Edición en estante" }
+    ]
+  },
+  {
+    id: "BK52",
+    isbn: "978-607-481-899-4",
+    title: "Cálculo multivariable",
+    author: "James Stewart",
+    edition: "5ª Edición",
+    editorial: "Cengage Learning México",
+    year: 2008,
+    category: "Ciencias Exactas y Matemáticas",
+    editionNote: "⚠️ Advertencia: Errata en fórmulas del Capítulo 3. Muy solicitada en evaluaciones.",
+    hasChapter3Error: true,
+    highDemand: true,
+    copies: [
+      { barcode: "UTSJR-LIB-062", location: "Pasillo 5, Estante B-1", condition: "Bueno", status: "PRESTADO", lastAuditDate: "2026-09-15", auditNotes: "5ª Edición prestada" },
+      { barcode: "UTSJR-LIB-063", location: "Pasillo 5, Estante B-1", condition: "Bueno", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "5ª Edición disponible" }
+    ]
+  },
+  {
+    id: "BK53",
+    isbn: "978-607-522-828-0",
+    title: "Cálculo multivariable",
+    author: "James Stewart",
+    edition: "6ª Edición (Revisada)",
+    editorial: "Cengage Learning México",
+    year: 2012,
+    category: "Ciencias Exactas y Matemáticas",
+    editionNote: "✓ Versión corregida: Sin error en Capítulo 3. Recomendada para exámenes.",
+    hasChapter3Error: false,
+    highDemand: true,
+    copies: [
+      { barcode: "UTSJR-LIB-064", location: "Pasillo 5, Estante B-2", condition: "Excelente", status: "PRESTADO", lastAuditDate: "2026-09-15", auditNotes: "6ª Edición prestada por alta demanda" },
+      { barcode: "UTSJR-LIB-065", location: "Pasillo 5, Estante B-2", condition: "Excelente", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "6ª Edición disponible en estante" }
+    ]
+  },
+  {
+    id: "BK54",
+    isbn: "978-607-526-551-3",
+    title: "Cálculo multivariable",
+    author: "James Stewart",
+    edition: "7ª Edición (Actualizada)",
+    editorial: "Cengage Learning México",
+    year: 2018,
+    category: "Ciencias Exactas y Matemáticas",
+    editionNote: "✓ Última versión: Ejercicios actualizados y corrección total sin erratas.",
+    hasChapter3Error: false,
+    highDemand: true,
+    copies: [
+      { barcode: "UTSJR-LIB-066", location: "Pasillo 5, Estante B-2", condition: "Excelente", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "7ª Edición en estante" },
+      { barcode: "UTSJR-LIB-067", location: "Pasillo 5, Estante B-2", condition: "Excelente", status: "DISPONIBLE", lastAuditDate: "2026-09-15", auditNotes: "7ª Edición en estante" }
     ]
   }
 ];

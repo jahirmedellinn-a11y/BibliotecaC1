@@ -25,7 +25,9 @@ create table Libro (
     edicion varchar(100),
     anio_publicacion int,
     categoria varchar(100),
-    isbn varchar(30)
+    isbn varchar(30),
+    notas_edicion varchar(255) null, -- para registrar erratas o avisos por edicion (Caso 3)
+    es_alta_demanda bit default 0    -- libros solicitados en evaluaciones (Caso 3)
 );
 go
 
@@ -121,6 +123,14 @@ insert into Libro (id_libro, titulo, autor, editorial, edicion, anio_publicacion
 ('BK50', 'De las bacterias al hombre: La evolución celular', 'René Drucker Colín & Marcelino Cereijido', 'Fondo de Cultura Económica', 'Colección La Ciencia para Todos', 1994, 'Ciencia y Divulgación Mexicana', '978-607-16-1500-8');
 go
 
+-- Caso 3: Insercion de las diferentes ediciones de Calculo multivariable y sus notas de erratas
+insert into Libro (id_libro, titulo, autor, editorial, edicion, anio_publicacion, categoria, isbn, notas_edicion, es_alta_demanda) values
+('BK51', 'Calculo multivariable', 'James Stewart', 'Cengage Learning Mexico', '4a Edicion', 2002, 'Ciencias Exactas y Matematicas', '978-607-481-898-7', 'Errata en ejercicios del Capitulo 3. No recomendada para examenes.', 1),
+('BK52', 'Calculo multivariable', 'James Stewart', 'Cengage Learning Mexico', '5a Edicion', 2008, 'Ciencias Exactas y Matematicas', '978-607-481-899-4', 'Errata en formulas del Capitulo 3. Muy solicitada en evaluaciones.', 1),
+('BK53', 'Calculo multivariable', 'James Stewart', 'Cengage Learning Mexico', '6a Edicion (Revisada)', 2012, 'Ciencias Exactas y Matematicas', '978-607-522-828-0', 'Version corregida sin error en Capitulo 3. Recomendada para evaluaciones.', 1),
+('BK54', 'Calculo multivariable', 'James Stewart', 'Cengage Learning Mexico', '7a Edicion (Actualizada)', 2018, 'Ciencias Exactas y Matematicas', '978-607-526-551-3', 'Version reciente con ejercicios actualizados sin erratas.', 1);
+go
+
 -- insertamos los ejemplares fisicos con sus ubicaciones y estados
 insert into Ejemplar (codigo_barras, id_libro, ubicacion_pasillo, condicion_estante, estado_operativo, condicion_fisica) values
 ('UTSJR-LIB-001', 'BK01', 'Pasillo 1', 'Estante A-1', 'Prestado', 'Excelente'),
@@ -181,7 +191,16 @@ insert into Ejemplar (codigo_barras, id_libro, ubicacion_pasillo, condicion_esta
 ('UTSJR-LIB-056', 'BK47', 'Pasillo 2', 'Estante D-4', 'Disponible', 'Bueno'),
 ('UTSJR-LIB-057', 'BK48', 'Pasillo 1', 'Estante A-2', 'Disponible', 'Excelente'),
 ('UTSJR-LIB-058', 'BK49', 'Pasillo 1', 'Estante A-3', 'Disponible', 'Bueno'),
-('UTSJR-LIB-059', 'BK50', 'Pasillo 5', 'Estante A-1', 'Disponible', 'Excelente');
+('UTSJR-LIB-059', 'BK50', 'Pasillo 5', 'Estante A-1', 'Disponible', 'Excelente'),
+-- copias de Calculo multivariable para Caso 2 y 3
+('UTSJR-LIB-060', 'BK51', 'Pasillo 5', 'Estante B-1', 'Disponible', 'Bueno'),
+('UTSJR-LIB-061', 'BK51', 'Pasillo 5', 'Estante B-1', 'Disponible', 'Regular'),
+('UTSJR-LIB-062', 'BK52', 'Pasillo 5', 'Estante B-1', 'Prestado', 'Bueno'),
+('UTSJR-LIB-063', 'BK52', 'Pasillo 5', 'Estante B-1', 'Disponible', 'Bueno'),
+('UTSJR-LIB-064', 'BK53', 'Pasillo 5', 'Estante B-2', 'Prestado', 'Excelente'),
+('UTSJR-LIB-065', 'BK53', 'Pasillo 5', 'Estante B-2', 'Disponible', 'Excelente'),
+('UTSJR-LIB-066', 'BK54', 'Pasillo 5', 'Estante B-2', 'Disponible', 'Excelente'),
+('UTSJR-LIB-067', 'BK54', 'Pasillo 5', 'Estante B-2', 'Disponible', 'Excelente');
 go
 
 -- insertamos los prestamos de prueba
@@ -191,7 +210,10 @@ insert into Prestamo (id_prestamo, codigo_barras, matricula, fecha_salida, fecha
 ('LN-1003', 'UTSJR-LIB-006', '20260105', '2026-09-12 10:00:00', '2026-09-15 10:00:00', null, 'EN_MORA', 60.00, 'Bueno', null),
 ('LN-1004', 'UTSJR-LIB-010', '20260103', '2026-09-19 12:00:00', '2026-09-22 12:00:00', null, 'VIGENTE', 0.00, 'Excelente', null),
 ('LN-1005', 'UTSJR-LIB-013', '20260106', '2026-09-20 15:00:00', '2026-09-23 15:00:00', null, 'VIGENTE', 0.00, 'Excelente', null),
-('LN-1006', 'UTSJR-LIB-014', '20260106', '2026-09-20 15:10:00', '2026-09-23 15:10:00', null, 'VIGENTE', 0.00, 'Excelente', null);
+('LN-1006', 'UTSJR-LIB-014', '20260106', '2026-09-20 15:10:00', '2026-09-23 15:10:00', null, 'VIGENTE', 0.00, 'Excelente', null),
+-- prestamos adicionales de Calculo para pruebas de Caso 2 y Caso 3
+('LN-1007', 'UTSJR-LIB-062', '20260102', '2026-09-19 14:00:00', '2026-09-22 14:00:00', null, 'VIGENTE', 0.00, 'Bueno', null),
+('LN-1008', 'UTSJR-LIB-064', '20260104', '2026-09-20 10:00:00', '2026-09-23 10:00:00', null, 'VIGENTE', 0.00, 'Excelente', null);
 go
 
 
@@ -212,3 +234,76 @@ go
 -- select * from Ejemplar where estado_operativo in ('Extraviado', 'En reparacion');
 -- select * from Prestamo where estado_prestamo = 'EN_MORA';
 
+
+-- ==========================================================
+-- PROCEDIMIENTOS Y VISTAS PARA CASO 2 Y CASO 3
+-- ==========================================================
+
+-- CASO 2: Consulta dinamica de libros rentados por alumno (elementos pendientes de entrega)
+create or alter procedure sp_ConsultarPrestamosAlumno
+    @p_matricula varchar(20)
+as
+begin
+    select 
+        a.matricula,
+        a.nombre_completo,
+        a.carrera,
+        a.estatus_escolar,
+        p.id_prestamo,
+        p.codigo_barras,
+        l.titulo,
+        l.edicion,
+        p.fecha_salida,
+        p.fecha_limite,
+        p.estado_prestamo,
+        p.multa_generada
+    from Prestamo p
+    inner join Alumno a on p.matricula = a.matricula
+    inner join Ejemplar e on p.codigo_barras = e.codigo_barras
+    inner join Libro l on e.id_libro = l.id_libro
+    where a.matricula = @p_matricula and p.fecha_devolucion is null;
+end;
+go
+
+-- CASO 2: Vista dinamica de libros disponibles en inventario
+create or alter view vw_InventarioDisponible
+as
+select 
+    l.id_libro,
+    l.titulo,
+    l.autor,
+    l.edicion,
+    l.categoria,
+    l.notas_edicion,
+    l.es_alta_demanda,
+    count(e.codigo_barras) as total_copias,
+    sum(case when e.estado_operativo = 'Disponible' then 1 else 0 end) as copias_disponibles,
+    sum(case when e.estado_operativo = 'Prestado' then 1 else 0 end) as copias_prestadas
+from Libro l
+left join Ejemplar e on l.id_libro = e.id_libro
+group by l.id_libro, l.titulo, l.autor, l.edicion, l.categoria, l.notas_edicion, l.es_alta_demanda;
+go
+
+-- CASO 3: Procedimiento para distinguir ediciones de libros y alta demanda en examenes
+create or alter procedure sp_ConsultarEdicionesLibro
+    @p_titulo varchar(100)
+as
+begin
+    select 
+        l.id_libro,
+        l.titulo,
+        l.edicion,
+        l.editorial,
+        l.anio_publicacion,
+        l.notas_edicion,
+        case when l.es_alta_demanda = 1 then 'Alta Demanda (Examenes)' else 'Normal' end as demanda,
+        e.codigo_barras,
+        e.ubicacion_pasillo,
+        e.condicion_estante,
+        e.estado_operativo
+    from Libro l
+    inner join Ejemplar e on l.id_libro = e.id_libro
+    where l.titulo like '%' + @p_titulo + '%'
+    order by l.edicion, e.codigo_barras;
+end;
+go

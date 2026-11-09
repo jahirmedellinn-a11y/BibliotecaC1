@@ -1,16 +1,16 @@
 // sistema de biblioteca
 // alumno: Sánchez Ramírez Darian
 
-const STORAGE_KEY = 'SIGB_JALPAN_DATA_V2';
+const STORAGE_KEY = 'SIGB_JALPAN_DATA_V3';
 
 let simulatedDate = new Date(2026, 8, 21, 10, 0, 0); // 21 Sept 2026, 10:00 AM
 
 const DEFAULT_DATA = {
   students: [
     { id: "S01", matricula: "20260101", name: "Darian Sánchez Ramírez", career: "TSU Desarrollo de Software", status: "ACTIVO", fines: 0, activeLoans: 1 },
-    { id: "S02", matricula: "20260102", name: "María Elena García Ramos", career: "TSU Tecnologías de la Información", status: "ACTIVO", fines: 0, activeLoans: 2 },
+    { id: "S02", matricula: "20260102", name: "María Elena García Ramos", career: "TSU Tecnologías de la Información", status: "ACTIVO", fines: 0, activeLoans: 3 }, // 2 previos + Cálculo 5ª
     { id: "S03", matricula: "20260103", name: "Carlos Eduardo Mendoza Cruz", career: "TSU Mecatrónica", status: "ACTIVO", fines: 0, activeLoans: 1 },
-    { id: "S04", matricula: "20260104", name: "Valeria Sofía Ortiz Morales", career: "TSU Desarrollo de Software", status: "ACTIVO", fines: 0, activeLoans: 0 },
+    { id: "S04", matricula: "20260104", name: "Valeria Sofía Ortiz Morales", career: "TSU Desarrollo de Software", status: "ACTIVO", fines: 0, activeLoans: 1 }, // Préstamo Cálculo 6ª
     { id: "S05", matricula: "20260105", name: "Juan Pablo Hernández Vega", career: "TSU Energías Renovables", status: "SANCIONADO", fines: 50.00, activeLoans: 1 },
     { id: "S06", matricula: "20260106", name: "Ana Cristina Flores Soto", career: "TSU Desarrollo de Software", status: "ACTIVO", fines: 0, activeLoans: 3 }, // Límite alcanzado
     { id: "S07", matricula: "20260107", name: "Luis Fernando Torres Mora", career: "TSU Mantenimiento Industrial", status: "ACTIVO", fines: 0, activeLoans: 0 },
@@ -107,10 +107,40 @@ const DEFAULT_DATA = {
       fine: 0,
       initialCondition: "Excelente",
       returnCondition: null
+    },
+    {
+      id: "LN-1007",
+      studentId: "S02",
+      studentName: "María Elena García Ramos",
+      matricula: "20260102",
+      bookBarcode: "UTSJR-LIB-062",
+      bookTitle: "Cálculo multivariable (5ª Ed. • Errata Cap. 3)",
+      loanDate: new Date(2026, 8, 19, 14, 0).toISOString(),
+      dueDate: new Date(2026, 8, 22, 14, 0).toISOString(),
+      returnDate: null,
+      status: "VIGENTE",
+      fine: 0,
+      initialCondition: "Bueno",
+      returnCondition: null
+    },
+    {
+      id: "LN-1008",
+      studentId: "S04",
+      studentName: "Valeria Sofía Ortiz Morales",
+      matricula: "20260104",
+      bookBarcode: "UTSJR-LIB-064",
+      bookTitle: "Cálculo multivariable (6ª Ed. Revisada • Versión sin error)",
+      loanDate: new Date(2026, 8, 20, 10, 0).toISOString(),
+      dueDate: new Date(2026, 8, 23, 10, 0).toISOString(),
+      returnDate: null,
+      status: "VIGENTE",
+      fine: 0,
+      initialCondition: "Excelente",
+      returnCondition: null
     }
   ],
   stats: {
-    processedRequests: 142
+    processedRequests: 144
   }
 };
 
@@ -121,7 +151,7 @@ function loadData() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (parsed.books && parsed.books.length >= 50) {
+      if (parsed.books && parsed.books.length >= 54) {
         return parsed;
       }
     } catch(e) {
@@ -583,10 +613,12 @@ function reportToSchoolServices(loanId) {
 
 // ─── 7. RENDERIZADO DE INTERFAZ DE USUARIO ─────────────────────────────────
 function updateUI() {
+  populateCategorySelects();
   renderMetrics();
   renderLoansTable();
   renderCatalog();
   renderStudents();
+  renderUserInventory();
   renderClock();
 }
 
@@ -679,29 +711,46 @@ function renderCatalog() {
   
   const query = (document.getElementById('search-catalog-input')?.value || "").toLowerCase();
   const filter = document.getElementById('filter-catalog-status')?.value || "ALL";
+  const catFilter = document.getElementById('filter-catalog-category')?.value || "ALL";
   
   let rowsHtml = "";
   
   appData.books.forEach(b => {
+    // Filtrado por categoría
+    if (catFilter !== "ALL" && b.category !== catFilter) return;
+
     b.copies.forEach(cp => {
-      // Filtrado
+      // Filtrado por estado
       if (filter === "AVAILABLE" && cp.status !== "DISPONIBLE") return;
       if (filter === "LOANED" && cp.status !== "PRESTADO") return;
       if (filter === "MAINTENANCE" && cp.status !== "EN_REPARACION") return;
+      if (filter === "LOST" && cp.status !== "EXTRAVIADO") return;
       
-      const matchText = `${b.title} ${b.author} ${b.category} ${b.isbn} ${cp.barcode} ${cp.location}`.toLowerCase();
+      const matchText = `${b.title} ${b.author} ${b.category} ${b.edition} ${b.isbn} ${cp.barcode} ${cp.location}`.toLowerCase();
       if (query && !matchText.includes(query)) return;
       
       let badge = `<span class="badge badge-success">Disponible</span>`;
       if (cp.status === "PRESTADO") badge = `<span class="badge badge-primary">Prestado</span>`;
       if (cp.status === "EN_REPARACION") badge = `<span class="badge badge-maint">En Reparación</span>`;
+      if (cp.status === "EXTRAVIADO") badge = `<span class="badge badge-danger">Extraviado</span>`;
       
+      // Badges Caso 3: Ediciones y Erratas en Evaluaciones
+      let editionBadges = "";
+      if (b.hasChapter3Error) {
+        editionBadges += ` <span class="badge badge-warning" style="font-size:11px;" title="${b.editionNote || 'Errata en Cap. 3'}">⚠️ Errata Cap. 3</span>`;
+      } else if (b.edition && (b.edition.includes("6ª") || b.edition.includes("7ª"))) {
+        editionBadges += ` <span class="badge badge-success" style="font-size:11px;" title="${b.editionNote || 'Corregida'}">✓ Corregida</span>`;
+      }
+      if (b.highDemand) {
+        editionBadges += ` <span class="badge badge-exam" style="font-size:10px;">🔥 Exámenes</span>`;
+      }
+
       rowsHtml += `
         <tr>
           <td><code>${cp.barcode}</code></td>
           <td>
-            <div class="table-title-cell">${b.title}</div>
-            <div class="table-sub-cell">${b.author} • ${b.edition} (${b.year}) • ${b.editorial}</div>
+            <div class="table-title-cell">${b.title}${editionBadges}</div>
+            <div class="table-sub-cell">${b.author} • <strong>${b.edition}</strong> (${b.year}) • ${b.editorial}</div>
           </td>
           <td><span class="badge badge-primary">${b.category}</span></td>
           <td>${cp.location}</td>
@@ -788,7 +837,214 @@ function showToast(msg, type = "info") {
   }, 3500);
 }
 
-// ─── 9. EVENT LISTENERS E INICIALIZACIÓN ───────────────────────────────────
+// ─── 9. CONSULTA DINÁMICA DE USUARIOS (CASO 2 Y CASO 3) ───────────────────
+function populateCategorySelects() {
+  const selects = ['filter-catalog-category', 'user-filter-category'];
+  selects.forEach(selId => {
+    const el = document.getElementById(selId);
+    if (!el || el.options.length > 1) return;
+    
+    const categories = (typeof MEXICAN_CATEGORIES !== 'undefined') ? MEXICAN_CATEGORIES : [
+      "Novela Mexicana", "Cuento y Ficción", "Poesía Mexicana", "Ensayo y Pensamiento",
+      "Crónica y Testimonio", "Historia y Antropología", "Literatura Contemporánea",
+      "Ciencia y Divulgación Mexicana", "Ciencias Exactas y Matemáticas"
+    ];
+    
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      el.appendChild(opt);
+    });
+  });
+}
+
+function lookupUserLoans() {
+  const query = (document.getElementById('input-lookup-matricula')?.value || "").trim().toLowerCase();
+  const resultContainer = document.getElementById('user-loans-result');
+  if (!resultContainer) return;
+  
+  if (!query) {
+    showToast("Ingresa tu matrícula o nombre para consultar.", "warning");
+    resultContainer.innerHTML = `<div class="info-card"><p style="color:#64748B;">Ingresa tu matrícula o nombre arriba para consultar tus libros rentados y fechas de entrega.</p></div>`;
+    return;
+  }
+  
+  const student = appData.students.find(s => s.matricula.toLowerCase() === query || s.name.toLowerCase().includes(query));
+  
+  if (!student) {
+    resultContainer.innerHTML = `
+      <div class="info-card danger">
+        <strong>⚠️ Usuario no encontrado:</strong> No se encontró ningún estudiante con matrícula o nombre <code>${query}</code>. Verifica tus datos.
+      </div>
+    `;
+    return;
+  }
+  
+  // Buscar préstamos activos del alumno
+  const activeLoans = appData.loans.filter(l => l.studentId === student.id && !l.returnDate);
+  
+  let statusBannerClass = student.status === "ACTIVO" ? "success" : "danger";
+  let statusText = student.status === "ACTIVO" ? "✓ Regular / Sin Bloqueos" : `⛔ Sancionado / Adeudo de $${student.fines.toFixed(2)} MXN`;
+  
+  let loansHtml = "";
+  if (activeLoans.length === 0) {
+    loansHtml = `
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:16px; margin-top:14px; color:#166534;">
+        <strong>✓ ¡Estás al corriente!</strong> No tienes libros rentados pendientes de entregar en este momento.
+      </div>
+    `;
+  } else {
+    loansHtml = `
+      <div style="margin-top:16px;">
+        <h4 style="color:#1E3A8A; font-size:15px; margin-bottom:8px;">Libros Rentados Actualmente (${activeLoans.length} de 3 permitidos):</h4>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Código de Barra</th>
+                <th>Libro / Edición</th>
+                <th>Fecha Salida</th>
+                <th>Fecha Límite</th>
+                <th>Estado de Entrega</th>
+                <th>Multa</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${activeLoans.map(l => {
+                let badgeClass = "badge-success";
+                let msg = "A tiempo (Vigente)";
+                if (l.status === "POR_VENCER") {
+                  badgeClass = "badge-warning";
+                  msg = "⚠️ Vence hoy en menos de 24h";
+                } else if (l.status === "EN_MORA") {
+                  badgeClass = "badge-danger";
+                  msg = "⛔ Vencido / En Mora";
+                }
+                return `
+                  <tr>
+                    <td><code>${l.bookBarcode}</code></td>
+                    <td><strong>${l.bookTitle}</strong></td>
+                    <td>${formatDate(l.loanDate)}</td>
+                    <td><strong>${formatDate(l.dueDate)}</strong></td>
+                    <td><span class="badge ${badgeClass}">${msg}</span></td>
+                    <td>${l.fine > 0 ? `<span style="color:#DC2626; font-weight:700;">$${l.fine.toFixed(2)} MXN</span>` : '$0.00'}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  
+  resultContainer.innerHTML = `
+    <div class="info-card ${statusBannerClass}" style="margin-top:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h3 style="font-size:18px; color:#0F172A; margin-bottom:4px;">${student.name}</h3>
+          <p style="font-size:13px; color:#475569;">Matrícula: <code>${student.matricula}</code> • Carrera: <strong>${student.career}</strong></p>
+        </div>
+        <div>
+          <span class="badge ${student.status === 'ACTIVO' ? 'badge-success' : 'badge-danger'}" style="font-size:13px; padding:6px 12px;">${statusText}</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:20px; margin-top:12px; font-size:13.5px; border-top:1px dashed #CBD5E1; padding-top:10px;">
+        <div>Libros en poder: <strong>${student.activeLoans} de 3 permitidos</strong></div>
+        <div>Multas acumuladas: <strong style="${student.fines > 0 ? 'color:#DC2626;' : ''}">$${student.fines.toFixed(2)} MXN</strong></div>
+      </div>
+      ${loansHtml}
+      <div style="margin-top:12px; font-size:12px; color:#64748B;">
+        💡 Recuerda entregar tus libros a tiempo para evitar multas de $10.00 MXN diarios y bloqueos de trámites escolares.
+      </div>
+    </div>
+  `;
+}
+
+function demoLookupStudent(mat) {
+  const input = document.getElementById('input-lookup-matricula');
+  if (input) {
+    input.value = mat;
+    lookupUserLoans();
+  }
+}
+
+function renderUserInventory() {
+  const container = document.getElementById('user-inventory-grid');
+  if (!container) return;
+  
+  const query = (document.getElementById('user-search-inventory')?.value || "").toLowerCase();
+  const categoryFilter = document.getElementById('user-filter-category')?.value || "ALL";
+  const availOnly = document.getElementById('user-filter-avail-only')?.checked || false;
+  const examOnly = document.getElementById('user-filter-exam-only')?.checked || false;
+  
+  let cardsHtml = "";
+  let matchesCount = 0;
+  
+  appData.books.forEach(b => {
+    // Filtrado de categoría
+    if (categoryFilter !== "ALL" && b.category !== categoryFilter) return;
+    // Filtrado de alta demanda
+    if (examOnly && !b.highDemand) return;
+    
+    // Contar disponibles
+    const totalCopies = b.copies.length;
+    const availCopies = b.copies.filter(c => c.status === "DISPONIBLE").length;
+    
+    if (availOnly && availCopies === 0) return;
+    
+    const matchText = `${b.title} ${b.author} ${b.edition} ${b.category} ${b.isbn}`.toLowerCase();
+    if (query && !matchText.includes(query)) return;
+    
+    matchesCount++;
+    
+    // Alertas de edición para caso 3
+    let editionBadge = "";
+    if (b.hasChapter3Error) {
+      editionBadge = `<div class="edition-notice warning">⚠️ <strong>Atención en evaluaciones:</strong> Esta edición tiene erratas en el Capítulo 3.</div>`;
+    } else if (b.edition && (b.edition.includes("6ª") || b.edition.includes("7ª"))) {
+      editionBadge = `<div class="edition-notice success">✓ <strong>Recomendado para exámenes:</strong> Edición corregida sin erratas en Cap. 3.</div>`;
+    }
+    
+    let examBadge = b.highDemand ? `<span class="badge badge-exam">🔥 Alta Demanda en Evaluaciones</span>` : "";
+    
+    // Ubicación de copias disponibles
+    const availLocs = b.copies.filter(c => c.status === "DISPONIBLE").map(c => c.location).join(', ') || "No disponible actualmente";
+    
+    cardsHtml += `
+      <div class="book-card-item">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+          <span class="badge badge-primary" style="font-size:11px;">${b.category}</span>
+          ${examBadge}
+        </div>
+        <h4 style="font-size:16px; color:#1E3A8A; margin-bottom:4px; font-weight:700;">${b.title}</h4>
+        <div style="font-size:13px; color:#475569; margin-bottom:6px;">${b.author} • <strong>${b.edition}</strong> (${b.year})</div>
+        <div style="font-size:12px; color:#64748B; margin-bottom:10px;">Editorial: ${b.editorial} • ISBN: <code>${b.isbn}</code></div>
+        
+        ${editionBadge}
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid #E2E8F0; font-size:13px;">
+          <div>
+            Disponibilidad: 
+            <strong style="color:${availCopies > 0 ? '#10B981' : '#DC2626'};">
+              ${availCopies > 0 ? `✓ ${availCopies} de ${totalCopies} en estante` : `⛔ Agotado (${totalCopies} en préstamo)`}
+            </strong>
+          </div>
+          <div style="font-size:11.5px; color:#64748B;">
+            ${availLocs}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = cardsHtml || `<div style="grid-column:1/-1; text-align:center; padding:30px; color:#64748B;">No se encontraron libros en inventario que coincidan con la búsqueda.</div>`;
+  const countEl = document.getElementById('user-inventory-count');
+  if (countEl) countEl.textContent = `${matchesCount} títulos encontrados`;
+}
+
+// ─── 10. EVENT LISTENERS E INICIALIZACIÓN ──────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   // Configurar tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -806,8 +1062,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') scanBook();
   });
   
+  // Búsquedas y filtros en catálogo
   document.getElementById('search-catalog-input')?.addEventListener('input', renderCatalog);
   document.getElementById('filter-catalog-status')?.addEventListener('change', renderCatalog);
+  document.getElementById('filter-catalog-category')?.addEventListener('change', renderCatalog);
+  
+  // Búsquedas y filtros en portal de usuarios (Caso 2 y Caso 3)
+  document.getElementById('user-search-inventory')?.addEventListener('input', renderUserInventory);
+  document.getElementById('user-filter-category')?.addEventListener('change', renderUserInventory);
+  document.getElementById('user-filter-avail-only')?.addEventListener('change', renderUserInventory);
+  document.getElementById('user-filter-exam-only')?.addEventListener('change', renderUserInventory);
+  document.getElementById('input-lookup-matricula')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') lookupUserLoans();
+  });
   
   // Recalcular estados iniciales e iniciar UI
   recalculateLoanStatuses();

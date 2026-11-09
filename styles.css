@@ -752,3 +752,58 @@ body {
 .doc-box li {
   margin-bottom: 6px;
 }
+
+/* ─── CASO 2 Y CASO 3: PORTAL DE USUARIOS Y DISTINCIÓN DE EDICIONES ─── */
+.user-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.book-card-item {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.book-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.edition-notice {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.edition-notice.warning {
+  background: #FEF3C7;
+  border-left: 4px solid #D97706;
+  color: #92400E;
+}
+
+.edition-notice.success {
+  background: #ECFDF5;
+  border-left: 4px solid #10B981;
+  color: #065F46;
+}
+
+.badge-exam {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
